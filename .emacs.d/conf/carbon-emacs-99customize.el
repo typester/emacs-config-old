@@ -1,0 +1,57 @@
+(custom-set-variables
+  ;; custom-set-variables was added by Custom.
+  ;; If you edit it by hand, you could mess it up, so be careful.
+  ;; Your init file should contain only one such instance.
+  ;; If there is more than one, they won't work right.
+ '(clean-buffer-list-delay-general 7)
+ '(column-number-mode t)
+ '(erc-email-userid "")
+ '(erc-nick "typester")
+ '(erc-server-auto-reconnect nil)
+ '(erc-track-exclude (quote ("209.20.74.190:2802")))
+ '(erc-track-exclude-types (quote ("JOIN" "KICK" "NICK" "PART" "QUIT" "MODE" "NOTICE")))
+ '(erc-track-faces-priority-list (quote (erc-keyword-face erc-current-nick-face default)))
+ '(erc-track-position-in-mode-line (quote after-modes))
+ '(erc-track-priority-faces-only nil)
+ '(erc-track-shorten-aggressively (quote max))
+ '(erc-track-switch-direction (quote importance))
+ '(erc-user-full-name "Daisuke Murase")
+ '(midnight-mode t nil (midnight))
+ '(outputz-modes (quote (emacs-lisp-mode lisp-interaction-mode c-mode c++-mode objc-mode java-mode perl-mode cperl-mode python-mode ruby-mode ecmascript-mode javascript-mode php-mode css-mode makefile-mode sh-mode fortran-mode f90-mode ada-mode xml-mode sgml-mode text-mode simple-hatena-mode objc-mode)))
+ '(safe-local-variable-values (quote ((clmemo-mode . t))))
+ '(show-paren-mode t)
+ '(transient-mark-mode t))
+(custom-set-faces
+  ;; custom-set-faces was added by Custom.
+  ;; If you edit it by hand, you could mess it up, so be careful.
+  ;; Your init file should contain only one such instance.
+  ;; If there is more than one, they won't work right.
+ '(default ((t (:foreground "gray95" :background "gray12"))))
+ '(ac-selection-face ((t (:background "green3" :foreground "white"))))
+ '(bold ((t (:foreground "white"))))
+ '(bold-italic ((t nil)))
+ '(cperl-array-face ((((class color) (background dark)) (:foreground "yellow"))))
+ '(cperl-hash-face ((((class color) (background dark)) (:foreground "Red"))))
+ '(cursor ((t (:background "green1"))))
+ '(erc-action-face ((t (:foreground "slate gray"))))
+ '(erc-bold-face ((t nil)))
+ '(erc-button ((t (:foreground "gray60"))))
+ '(erc-current-nick-face ((t (:foreground "yellow"))))
+ '(erc-input-face ((t (:foreground "white"))))
+ '(erc-keyword-face ((t (:foreground "yellow"))))
+ '(erc-my-nick-face ((t (:foreground "white"))))
+ '(erc-nick-default-face ((t nil)))
+ '(erc-nick-msg-face ((t nil)))
+ '(erc-notice-face ((t (:foreground "RoyalBlue" :weight bold))))
+ '(erc-prompt-face ((t (:foreground "gold"))))
+ '(erc-timestamp-face ((t (:foreground "green"))))
+ '(flymake-errline ((((class color) (background dark)) (:background "red" :foreground "white"))))
+ '(flymake-warnline ((((class color) (background dark)) (:background "dark orange" :foreground "white"))))
+ '(font-lock-string-face ((t (:foreground "LimeGreen"))))
+ '(font-lock-variable-name-face ((t (:foreground "yellow"))))
+ '(font-lock-warning-face ((t (:foreground "DeepPink"))))
+ '(highlight ((t (:background "green3"))))
+ '(match ((((class color) (min-colors 88) (background dark)) (:background "green3"))))
+ '(mode-line ((t (:background "gray90" :foreground "black"))))
+ '(mode-line-buffer-id ((t nil)))
+ '(region ((t (:background "yellow3" :foreground "black")))))
