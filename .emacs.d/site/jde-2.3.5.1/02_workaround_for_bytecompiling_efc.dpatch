@@ -1,0 +1,172 @@
+#! /bin/sh -e
+## 02_workaround_for_bytecompiling_efc.dpatch by Masayuki Hatta <mhatta@debian.org>
+##
+## All lines beginning with \`## DP:' are a description of the patch.
+## DP: A kludge for byte-compiling lisp/efc.el (actually backported from CVS HEAD)
+
+if [ $# -ne 1 ]; then
+    echo >&2 "`basename $0`: script expects -patch|-unpatch as argument"
+    exit 1
+fi
+case "$1" in
+        -patch) patch -f --no-backup-if-mismatch --dry-run -p1 < $0 && patch -f --no-backup-if-mismatch -p1 < $0
+;;
+        -unpatch) patch -f --no-backup-if-mismatch -R -p1 < $0;;
+        *)
+                echo >&2 "`basename $0`: script expects -patch|-unpatch as argument"
+                exit 1;;
+esac
+
+exit 0
+
+diff -urN jde-2.3.5.1.orig/lisp/efc.el jde-2.3.5.1/lisp/efc.el
+--- jde-2.3.5.1.orig/lisp/efc.el	2006-10-23 02:39:15.000000000 +0900
++++ jde-2.3.5.1/lisp/efc.el	2006-10-23 02:39:25.000000000 +0900
+@@ -1,11 +1,11 @@
+ ;;; efc.el -- Emacs Foundation Classes
+-;; $Revision: 1.18 $ $Date: 2005/03/19 03:50:31 $ 
++;; $Revision: 1.20 $ $Date: 2006/05/11 04:17:15 $ 
+ 
+ ;; Author: Paul Kinnucan <paulk@mathworks.com>
+ ;; Maintainer: Paul Kinnucan
+ ;; Keywords: lisp, tools, classes
+ 
+-;; Copyright (C) 2001, 2002, 2003, 2004, 2005 Paul Kinnucan.
++;; Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006 Paul Kinnucan.
+ 
+ ;; GNU Emacs is free software; you can redistribute it and/or modify
+ ;; it under the terms of the GNU General Public License as published by
+@@ -589,10 +589,20 @@
+     (while (efc-iter-has-next iter)
+       (efc-visitor-visit visitor (efc-iter-next iter)))))
+ 
+-(defmethod efc-coll-memberp ((this efc-collection) member)
++(defmethod efc-coll-memberp ((this efc-collection) item)
+   "Returns nonil if this contains item."
+   (error "Abstract method."))
+ 
++(defmethod efc-coll-add ((this efc-collection) item)
++  "Adds an item to this collection."
++  (error "Abstract method."))
++
++(defmethod efc-coll-clear ((this efc-collection))
++  "Clears all items from this collection, leaving
++it empty."
++  (error "Abstract method."))
++
++
+ ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+ ;;                                                                            ;; 
+ ;; Iterator Class                                                             ;;
+@@ -647,8 +657,25 @@
+   "Adds an item to the list."
+   (if (efc-coll-type-compatible-p this item)
+       (oset this items (append (oref this items) (list item)))
+-    (error "Tried to add an item of type %s to a list of items of type %s"
+-	   (typep item) (oref this elem-type))))
++    (error "efc-list error: tried to add an item of type %s to a list of items of type %s"
++	   (if (object-p item)
++	       (object-class item)
++	     (type-of item))
++	   (oref this elem-type))))
++
++(defmethod efc-list-remove-if ((this efc-list) pred)
++  "Removes an item from this list if PRED returns nonnil.
++PRED is a function that accepts one argument, an item
++from the list."
++  (let ((items (oref this items)))
++    (setq items (remove-if pred items))
++    (oset this items items)))
++
++;;  (oset this items (remove-if pred (oref this items))))
++
++(defmethod efc-coll-clear ((this efc-list))
++  "Clears this list, leaving it empty."
++  (oset this items nil))
+ 
+ (defmethod efc-coll-iterator ((this efc-list))
+   "Return an iterator for this list."
+@@ -726,8 +753,34 @@
+ 
+ (defmethod efc-coll-get ((this efc-assoc) key)
+   "Get an item from the association list."
+-  (cdr (assq  key (oref this items))))
++  (cdr (assoc  key (oref this items))))
+ 
++(defmethod efc-assoc-values ((this efc-assoc))
++  "Get the values stored in this association."
++  (mapcar 
++   (lambda (items) (cdr items))
++   (oref this items)))
++
++(defmethod efc-assoc-remove-if-key ((this efc-assoc) pred)
++  "Removes each item from the association for which PRED returns
++a nonnil value. PRED is a function that accepts one argument,
++the association's key."
++  (lexical-let ((p pred))
++    (efc-list-remove-if 
++     this
++     (lambda (x)
++     (funcall p (car x))))))
++
++
++(defmethod efc-assoc-remove-if-value ((this efc-assoc) pred)
++  "Removes each item from the association for which PRED returns
++a nonnil value. PRED is a function that accepts one argument,
++the association's value."
++  (lexical-let ((p pred))
++    (efc-list-remove-if 
++     this
++     (lambda (x)
++       (funcall p (cdr x))))))
+ 
+ ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+ ;;                                                                            ;; 
+@@ -760,19 +813,26 @@
+ (defmethod initialize-instance ((this efc-hash-table) &rest fields)
+   "Hash table constructor."
+   (call-next-method)
+-  (oset table (make-hash-table)))
++  (oset this table (make-hash-table)))
+ 
+ (defmethod efc-coll-put ((this efc-hash-table) key value)
+   "Put an item into the table."
+   (if (efc-coll-type-compatible-p this value)
+       (puthash key value (oref this table))      
+     (error "Tried to add an item of type %s to a hash table of items of type %s"
+-	   (typep value) (oref this elem-type))))
++	   (if (object-p value)
++	       (object-class value)
++	     (type-of value))
++	   (oref this elem-type))))
+ 
+ (defmethod efc-coll-get ((this efc-hash-table) key)
+   "Get an item from the table."
+   (gethash key (oref this table)))
+ 
++(defmethod efc-coll-clear ((this efc-hash-table))
++  "Clears all items from THIS hash table."
++  (clrhash (oref this table)))
++
+ (defmethod efc-coll-visit ((this efc-hash-table) visitor)
+   "Visit each item in the hash table. VISITOR is an instance
+ of efc-visitor class."
+@@ -799,6 +859,18 @@
+ 
+ ;; Change History
+ ;; $Log: efc.el,v $
++;; Revision 1.20  2006/05/11 04:17:15  paulk
++;; Merge maintenance fixes.
++;;
++;; Revision 1.18.2.3  2006/05/11 04:05:34  paulk
++;; Clean out CRs.
++;;
++;; Revision 1.18.2.2  2006/05/11 04:00:54  paulk
++;; Merged main development branch enhancements.
++;;
++;; Revision 1.18.2.1  2006/05/11 03:26:13  paulk
++;; Fix compile errors.
++;;
+ ;; Revision 1.18  2005/03/19 03:50:31  paulk
+ ;; Define an association set.
+ ;;

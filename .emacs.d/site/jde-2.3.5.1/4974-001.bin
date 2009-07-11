@@ -1,0 +1,21 @@
+--- jde-2.3.5-orig/lisp/jde-import.el	2005-10-05 09:15:21.000000000 -0400
++++ jde-2.3.5/lisp/jde-import.el	2006-05-31 12:59:33.000000000 -0400
+@@ -495,15 +495,15 @@
+                    (classname (jde-import-get-classname name))
+                    (case-fold-search nil)
+                    (number-of-matches 
+-                    (substring (count-matches 
+-                                (concat "\\b" classname "\\b")) 0 2)))
++                    (count-matches 
++                                (concat "\\b" classname "\\b"))))
+               (if (or 
+                    ;; If name is already listed in the set
+                    ;; of required imports...
+                    (member name required-imports)
+                    ;;or the class is not reference in the file
+                    ;;and is not an import of the whole package i.e. .*
+-                   (and (< (string-to-number number-of-matches) 2)
++                   (and (< number-of-matches 2)
+                         (not (string= classname "*")))
+                    ;; or imports a class in the current package...
+                    (and
